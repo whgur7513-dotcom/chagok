@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": "$room.matches(/^[a-f0-9]{64}$/)",
+        ".write": "$room.matches(/^[a-f0-9]{64}$/)",
+        "applied": {
+          "$batch": {
+            ".validate": "!data.exists()"
+          }
+        }
+      }
+    }
+  }
+}
