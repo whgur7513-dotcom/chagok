@@ -11,11 +11,14 @@ function report(rows){
  const weekday=['일','월','화','수','목','금','토'][new Date(year,month-1,date).getDay()];
  const lines=['✅️ 보고양식',`트래픽조사 (${String(year).slice(-2)}년 ${month}월 ${date}일 ${weekday}요일)_ifc몰`];
  const count=n=>String(n).padStart(2,'0');
- const rowLine=r=>`${r.start}-${r.end} 남 ${count(r.counts[0])}명/여 ${count(r.counts[1])}명`;
+ const now=new Date(),pad=n=>String(n).padStart(2,'0'),todayText=[now.getFullYear(),pad(now.getMonth()+1),pad(now.getDate())].join('-'),clock=pad(now.getHours())+':'+pad(now.getMinutes()),picked=$('date').value;
+ // 아직 끝나지 않은 시간대인데 입력이 없으면 숫자를 비워 둔다. 지난 시간대는 0명도 00으로 적는다.
+ const blank=r=>!r.entered&&r.counts.every(n=>n===0)&&(picked>todayText||(picked===todayText&&clock<r.end));
+ const rowLine=r=>`${r.start}-${r.end} `+(blank(r)?'':`남 ${count(r.counts[0])}명/여 ${count(r.counts[1])}명`);
  for(const p of periods){
   const group=periodRows(rows,p);for(const r of group)lines.push(rowLine(r));
   const sum=totals(group);
-  lines.push(`📍${p.name} 합계${p.name==='오전'?'':'(명)'} 보고 남 ${count(sum[0])}명/여 ${count(sum[1])}명`);
+  lines.push(`📍${p.name} 합계${p.name==='오전'?'':'(명)'} `+(group.length&&group.every(blank)?'':`보고 남 ${count(sum[0])}명/여 ${count(sum[1])}명`));
 
  }
  const other=rows.filter(r=>r.start<'10:00'||r.start>='22:00');
@@ -36,3 +39,5 @@ $('copyReport').onclick=async()=>{const value=$('reportText').value;try{if(!navi
 
 function noteText(period){const [year,month,date]=$('date').value.split('-').map(Number);const weekday=['일','월','화','수','목','금','토'][new Date(year,month-1,date).getDay()];return `IFC몰 ${month}/${date} ${weekday}요일 ${period} 특이사항\n${notes()[period]||''}`}
 async function copyNote(period,status){const value=noteText(period);try{if(!navigator.clipboard)throw Error('unavailable');await navigator.clipboard.writeText(value);status.textContent='복사했어요.'}catch(e){const area=document.createElement('textarea');area.value=value;area.className='period-note';area.setAttribute('aria-label',period+' 특이사항 복사할 내용');status.replaceChildren(area);area.focus();area.select();area.setSelectionRange(0,value.length);let ok=false;try{ok=document.execCommand('copy')}catch(e){}if(ok)status.textContent='복사했어요.';else{const hint=document.createElement('span');hint.textContent='선택된 내용을 길게 누르거나 ⌘C / Ctrl+C로 복사해 주세요.';status.append(hint)}}}
+
+setInterval(()=>{$('reportText').value=report(day())},60000);
