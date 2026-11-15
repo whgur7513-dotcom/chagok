@@ -4,6 +4,11 @@
       "$room": {
         ".read": "$room.matches(/^[a-f0-9]{64}$/)",
         ".write": "$room.matches(/^[a-f0-9]{64}$/)",
+        "seq": {
+          "$client": {
+            ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() + 1)"
+          }
+        },
         "applied": {
           "$batch": {
             ".validate": "!data.exists()"
